@@ -47,6 +47,9 @@ async def getClassifica(update: Update, context: ContextTypes.DEFAULT_TYPE):
     p: ChatUserPoints
     for i,p in enumerate(points):
         
+        if p.points == 0: # sono ordinati per punteggio
+            break
+        
         if i == 0:
             pos = '🥇'
         elif i == 1:
@@ -56,6 +59,7 @@ async def getClassifica(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             pos = f'{i+1})'
             
+
         classifica += f"{pos} {p.user.username} - {p.points}\n"
     
     
