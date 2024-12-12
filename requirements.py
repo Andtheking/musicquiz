@@ -53,6 +53,7 @@ from commands.doAlways import middleware
 from commands.admin import addAdmin, removeAdmin
 from commands.guess import startGuess_command, stopGuess_command
 from commands.fmuser import setLastFmUser
+from commands.points import getPoints, getClassifica, getOtherPoints
 
 
 # Jobs

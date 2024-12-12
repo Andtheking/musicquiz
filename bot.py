@@ -41,6 +41,9 @@ def main():
         "startGuess": MessageHandler(message_handler_as_command('startGuess','(?P<username>.+)?'), middleware(startGuess_command)),
         "stopGuess": MessageHandler(message_handler_as_command('stopGuess'), middleware(stopGuess_command)),
         "setLastFmUser": MessageHandler(message_handler_as_command('setLastFm',"(?P<username>.+)?"), middleware(setLastFmUser)),
+        "points": MessageHandler(message_handler_as_command('points'), middleware(getPoints)),
+        "points2": MessageHandler(message_handler_as_command('points',"(?P<username>.+)?"), middleware(getOtherPoints)),
+        "classifica": MessageHandler(message_handler_as_command('classifica'), middleware(getClassifica)),
     }
     
     for v in handlers.values():
