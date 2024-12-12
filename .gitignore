@@ -1,6 +1,7 @@
 __pycache__
 secret/*
-log*
+log*txt
+log*json
 keys*
 music/*
 bot.pkl
