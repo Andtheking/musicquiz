@@ -19,12 +19,6 @@ async def sendQuizJob(context: ContextTypes.DEFAULT_TYPE):
         if not chat.automatic_quizzes or chat.guessing:
             continue
         
-        
-        # # Test 
-        
-        # if chat.id not in [-1001398376217]:
-        #     continue
-        
         s = asyncio.Semaphore(3)
         asyncio.create_task(sendQuiz(context, chat, s))
     pass
@@ -62,17 +56,26 @@ async def sendQuiz(context: ContextTypes.DEFAULT_TYPE, chat: Chat, sem: asyncio.
                 wrong.append(chat_user.id)
             else:
                 ok = True
-                await mex.delete()
+                
+                try:
+                    await mex.delete()
+                except:
+                    pass
+                
                 chat.guessing = True
                 chat.save()
             
-
     track, file = r
     
-    # Aggiorna lo stato del quiz nel database
-    # Prova a inviare l'audio
-    async with sem: 
-        await context.bot.send_audio(chat_id=chat.id, audio=open(file, 'rb'), title='Guess the song')
+    ok = False
+    while not ok:
+        try:
+            async with sem: 
+                await context.bot.send_audio(chat_id=chat.id, audio=open(file, 'rb'), title='Guess the song')
+            ok = True
+        except:
+            log("Failed to send audio...", tipo='errore')
+            pass
 
     chat.points = True
     chat.solution_title = '\n'.join(track[0])
