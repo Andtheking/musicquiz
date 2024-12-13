@@ -59,7 +59,7 @@ def middleware(next = None):
             
             for i,j in zip(db_chat.solution_title.split("\n"),db_chat.solution_artist.split("\n")):
                 correct_title, correct_artist = format_title(i, j)
-                if correct_title and correct_artist and (fuzz.ratio(correct_title.lower(), guess.lower()) >= 80):
+                if correct_title and correct_artist and guess and (fuzz.ratio(correct_title.lower(), guess.lower()) >= 80):
                     if cup and db_chat.points:
                         other = db_user.lastfm != db_chat.guessing_from_who
                         punti_guadagnati = (2 if other else 1)
