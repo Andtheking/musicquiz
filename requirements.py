@@ -54,7 +54,7 @@ from commands.admin import addAdmin, removeAdmin
 from commands.guess import startGuess_command, stopGuess_command
 from commands.fmuser import setLastFmUser
 from commands.points import getPoints, getClassifica, getOtherPoints
-
+from commands.autoQuiz import switchQuizMode
 
 # Jobs
 from jobs.send_logs import send_logs_channel

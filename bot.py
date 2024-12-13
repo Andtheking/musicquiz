@@ -44,6 +44,7 @@ def main():
         "points": MessageHandler(message_handler_as_command('points'), middleware(getPoints)),
         "points2": MessageHandler(message_handler_as_command('points',"(?P<username>.+)?"), middleware(getOtherPoints)),
         "classifica": MessageHandler(message_handler_as_command('classifica'), middleware(getClassifica)),
+        "switchAutoQuiz": MessageHandler(message_handler_as_command('switchAutoQuiz'), middleware(switchQuizMode)),
     }
     
     for v in handlers.values():

@@ -17,7 +17,7 @@ class Utente(BaseModel):
 class Chat(BaseModel):
     id = IntegerField(primary_key=True)
     title = TextField(null=True)
-    automatic_quizzes = BooleanField(null=False, default=True)
+    automatic_quizzes = BooleanField(null=False, default=False)
     
     job_id = IntegerField(null=True)
     guessing = BooleanField(null=False, default=True)
@@ -58,4 +58,4 @@ def alter_column(tabella: str, colonna: str, tipo: Field):
 # 3. Rimuovere la vecchia tabella.
         
 if __name__ == '__main__':
-    alter_column('chat', 'job_id',TextField(null=True))
+    alter_column('chat', 'automatic_quizzes',BooleanField(null=False, default=False))
