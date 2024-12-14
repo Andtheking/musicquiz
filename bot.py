@@ -70,11 +70,15 @@ def main():
     )
 
     
+    first_quiz = next((datetime.now().replace(hour=h, minute=0, second=0, microsecond=0) for h in [7, 9, 11, 13, 15, 17, 19, 21, 23] if datetime.now() <= datetime.now().replace(hour=h, minute=0, second=0, microsecond=0)), datetime.now().replace(hour=7, minute=0, second=0, microsecond=0) + timedelta(days=1))
+
     jq.run_repeating(
         callback=sendQuizJob,
         interval=7200,
-        first=next((datetime.now().replace(hour=h, minute=0, second=0, microsecond=0) for h in [7, 9, 11, 13, 15, 17, 19, 21, 23] if datetime.now() <= datetime.now().replace(hour=h, minute=0, second=0, microsecond=0)), datetime.now().replace(hour=7, minute=0, second=0, microsecond=0) + timedelta(days=1))
+        first=first_quiz
     )
+
+    print(f"Primo quiz: {first_quiz}")
     
     application.run_polling() # Avvia il polling: https://blog.neurotech.africa/content/images/2023/06/telegram-polling-vs-webhook-5-.png 
     
