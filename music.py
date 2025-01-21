@@ -10,6 +10,19 @@ from pydub import AudioSegment
 
 from difflib import SequenceMatcher
 
+from utils.jsonUtils import load_configs
+
+import spotipy
+
+
+sp = spotipy.Spotify(auth_manager=spotipy.SpotifyOAuth(
+    client_id=load_configs()['SPOTIFY']['CLIENT_ID'],
+    client_secret=load_configs()['SPOTIFY']['CLIENT_SECRET'],
+    redirect_uri="http://localhost:5500/callback",
+    scope=None
+))
+PLAYLIST_ID = "37i9dQZEVXbIQnj7RRhdSX"
+
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
 
@@ -24,6 +37,19 @@ def search_youtube_music(track_name, track_artist, yt):
     song_results = yt.search(query, limit=4)
 
     return song_results
+
+def random_from_top50_spotify():
+    results = sp.playlist(PLAYLIST_ID)
+    if results['items']:
+        tracks = results['items']
+        random_track = random.choice(tracks)
+        track_name = random_track['track']['name']
+        artist_name = random_track['track']['artists'][0]['name']
+        print(f"Canzone casuale dalla Top 50 Italia: {track_name} - {artist_name}")
+    else:
+        print("Non ci sono tracce nella playlist.")    
+
+
 
 
 def random_track(network: pylast._Network, username) -> tuple[str,str]:
@@ -89,14 +115,15 @@ def format_title(title, artist = None) -> str|tuple[str,str]:
     else:
         return title
 
-import aiofiles, asyncio
+import aiofiles, asyncio, pykakasi
+kks = pykakasi.kakasi()
 
 async def Main(username):
         
     yt = YTMusic()
 
-    keys = jsonpickle.decode(open('keys.json','r').read())
-    keys = keys['LAST_FM']
+    
+    keys = load_configs()['LAST_FM']
 
     api_key = keys['API_KEY']
     api_secret = keys['API_SECRET']
@@ -136,7 +163,7 @@ async def Main(username):
             else:
                 ok = True
 
-    track = ([track[0], info['title']],[track[1], info['channel']])
+    track = ([track[0], info['title'], " ".join([k['hepburn'] for k in kks.convert(track[0])])],[track[1], info['channel'], " ".join([k['hepburn'] for k in kks.convert(track[1])])])
     print(f"Link del primo risultato: {video_link}")
     print(f"Soluzione: {track[0]} di {track[1]}")
     
@@ -170,27 +197,24 @@ async def Main(username):
 
 
 if __name__ == "__main__":
-    pass
-    # track, file = asyncio.run(Main('Andtheking'))
-    # from threading import Thread
+    track, file = asyncio.run(Main('Mau428'))
+    from threading import Thread
 
-    # Thread(target=lambda: play(file)).start()
-
-    # guessed = False
-    # while not guessed:
-    #     guess = input("Indovina la canzone:")
+    guessed = False
+    while not guessed:
+        guess = input("Indovina la canzone:")
         
         
-    #     guess = format_title(guess)
+        guess = format_title(guess)
         
-    #     for i in track[0]:
-    #         correct = format_title(i)
-    #         check = similar(correct.lower(), guess.lower())
-    #         if check > 0.8:
-    #             guessed = True
-    #             break
+        for i in track[0]:
+            correct = format_title(i)
+            check = similar(correct.lower(), guess.lower())
+            if check > 0.8:
+                guessed = True
+                break
                 
-    #     if guessed:
-    #         print("Bravo!")
-    #     else:
-    #         print("No!")
+        if guessed:
+            print("Bravo!")
+        else:
+            print("No!")
