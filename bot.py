@@ -52,7 +52,7 @@ def main():
     
     # Se non cadi in nessun handler, vieni qui
     application.add_handler(MessageHandler(filters=filters.ALL, callback=middleware()),1)
-    
+     
     application.add_error_handler(error) # Definisce la funzione che gestisce gli errori
     
     jq = application.job_queue # Per eseguire funzioni asincrone con frequenza, ritardi o a pianificazione.

@@ -13,7 +13,10 @@ from difflib import SequenceMatcher
 from utils.jsonUtils import load_configs
 
 import spotipy
-
+import asyncio
+import aiofiles
+import pykakasi
+import concurrent.futures
 
 sp = spotipy.Spotify(auth_manager=spotipy.SpotifyOAuth(
     client_id=load_configs()['SPOTIFY']['CLIENT_ID'],
@@ -26,16 +29,12 @@ PLAYLIST_ID = "37i9dQZEVXbIQnj7RRhdSX"
 def similar(a, b):
     return SequenceMatcher(None, a, b).ratio()
 
-
 import difflib
 import yt_dlp
 
-def search_youtube_music(track_name, track_artist, yt):
+def search_youtube_music(track_name, track_artist, yt: YTMusic):
     query = f"{track_name} {track_artist}"
-
-    # Esegui la ricerca per "songs"
     song_results = yt.search(query, limit=4)
-
     return song_results
 
 def random_from_top50_spotify():
@@ -49,17 +48,8 @@ def random_from_top50_spotify():
     else:
         print("Non ci sono tracce nella playlist.")    
 
-
-
-
-def random_track(network: pylast._Network, username) -> tuple[str,str]:
-    # Recupera le top 50 tracce dell'utente
-    
+def random_track(network: pylast._Network, username) -> tuple[str, str]:
     top_tracks = network.get_user(username).get_recent_tracks(limit=150)
-    #.get_top_tracks(limit=150)
-
-
-    # Filtra per tracce uniche
     unique_tracks = []
     seen_titles = set()
 
@@ -68,16 +58,11 @@ def random_track(network: pylast._Network, username) -> tuple[str,str]:
         if title not in seen_titles:
             seen_titles.add(title)
             unique_tracks.append(track)
-            
-    # Seleziona una traccia casuale tra le top 50
+    
     track: pylast.PlayedTrack = random.choice(unique_tracks)
-    track_name = track.track.title
-    artist_name = track.track.artist.name
+    return (track.track.title, track.track.artist.name)
 
-    return (track_name, artist_name)
-
-def format_title(title, artist = None) -> str|tuple[str,str]:
-    # Regex per i titoli delle canzoni
+def format_title(title, artist=None) -> str | tuple[str, str]:
     titoli_regex = [
         (r"(.*) - Single", r"\1"),
         (r"(.*) - EP", r"\1"),
@@ -88,8 +73,7 @@ def format_title(title, artist = None) -> str|tuple[str,str]:
         (r"(.+)\(con.+", r"\1"),
         (r"(.+)\(Official.+", r"\1"),
     ]
-
-    # Regex per gli artisti delle canzoni
+    
     artisti_regex = [
         (r"(.+), (.+)", r"\1"),
         (r"(.+) e .+", r"\1"),
@@ -115,106 +99,91 @@ def format_title(title, artist = None) -> str|tuple[str,str]:
     else:
         return title
 
-import aiofiles, asyncio, pykakasi
 kks = pykakasi.kakasi()
+async def download_with_timeout(ydl:  yt_dlp.YoutubeDL, video_link, timeout=300):
+    loop = asyncio.get_event_loop()
+    with concurrent.futures.ThreadPoolExecutor() as pool:
+        try:
+            await asyncio.wait_for(loop.run_in_executor(pool, ydl.download, video_link), timeout=timeout)
+        except asyncio.TimeoutError:
+            print("Download interrotto: tempo scaduto.")
+            return None
 
-async def Main(username):
-        
-    yt = YTMusic()
+def cut_random_15s(file_path: str, output_path: str):
+    audio = AudioSegment.from_file(file_path)
+    duration = len(audio)  # Durata in millisecondi
 
+    if duration <= 15000:
+        print("Il file è troppo corto per essere tagliato.")
+        audio.export(output_path, format="mp3")
+        return
     
+    start_time = random.randint(0, duration - 15000)
+    end_time = start_time + 15000
+    
+    cut_audio = audio[start_time:end_time]
+    cut_audio.export(output_path, format="mp3")
+    
+async def Main(username):
+    yt = YTMusic()
     keys = load_configs()['LAST_FM']
-
     api_key = keys['API_KEY']
     api_secret = keys['API_SECRET']
-
     ydl_opts = {
         'outtmpl': 'music/%(title)s.%(ext)s',
-        'format': 'bestaudio[abr<=128]/best',  # Limita il bitrate massimo a 128kbps
+        'format': 'bestaudio[abr<=128]/best',
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'mp3',
-            'preferredquality': '5',  # Valori più alti indicano qualità inferiore
+            'preferredquality': '5',
         }],
     }
-
-
-    # Autenticazione all'API di Last.fm
     network = pylast.LastFMNetwork(api_key=api_key, api_secret=api_secret)
     try:
         track = await asyncio.to_thread(random_track, network, username)
     except:
         return None
-    query = f"{track[0]} {track[1]}"
-    search_results =  await asyncio.to_thread(search_youtube_music, track[0], track[1], yt)
-    # search_results = yt.search(query, filter="videos", limit=4)
-
-    # Ottieni il primo risultato utile
+    search_results = await asyncio.to_thread(search_youtube_music, track[0], track[1], yt)
     ok = False
     i = 0
     while not ok:
-        if not 'videoId' in search_results[i]:
+        if 'videoId' not in search_results[i]:
             continue    
         video_link = f"https://music.youtube.com/watch?v={search_results[i]['videoId']}"
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = await asyncio.to_thread(ydl.extract_info, url=video_link, download=False)
+            file_path = ydl.prepare_filename(info)
+            file_path = file_path[0:file_path.rindex('.')] + '.mp3'
             if info['duration'] > 600:
                 i += 1
             else:
                 ok = True
 
-    track = ([track[0], info['title'], " ".join([k['hepburn'] for k in kks.convert(track[0])])],[track[1], info['channel'], " ".join([k['hepburn'] for k in kks.convert(track[1])])])
-    print(f"Link del primo risultato: {video_link}")
-    print(f"Soluzione: {track[0]} di {track[1]}")
     
-
-    file = None
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        file = await asyncio.to_thread(ydl.prepare_filename, info)
-        dir =  os.listdir('music')
-        if not file[:-4] + 'mp3' in dir:
-            error_code = await asyncio.to_thread(ydl.download, video_link)
-    
-    audio = AudioSegment.from_file(file[:-4] + 'mp3')
-    audio_length = len(audio)
-    segment_duration = 15 * 1000
-
-    if audio_length > segment_duration:
-        # Calcola un punto casuale di inizio
-        start_time = random.randint(0, audio_length - segment_duration)
-        end_time = start_time + segment_duration
-
-        # Estrai il segmento
-        segment = audio[start_time:end_time]
-
-        # Salva il segmento estratto in un file temporaneo
-        output_file = f"{file[:-4]}_{start_time}_{end_time}.mp3"
-        segment.export(output_file, format="mp3")
-    else:
-        output_file = file[:-4] + 'mp3'
+        await download_with_timeout(ydl, video_link)
         
-    return (track, output_file)
-
+        cut_random_15s(file_path, file_path)
+        
+        result = kks.convert(info['title'])
+        result2 = kks.convert(info['channel'])
+        # FIXME: Che schifo ti prego sistema
+        track = (
+            (track[0], info['title'], " ".join([item['hepburn'] for item in result])), # Titolo
+            (track[1], info['uploader'], " ".join([item['hepburn'] for item in result2])) # Artista
+        )
+    
+    return (track, file_path)
 
 if __name__ == "__main__":
-    track, file = asyncio.run(Main('Mau428'))
-    from threading import Thread
-
+    track = asyncio.run(Main('Mau428'))[0]
     guessed = False
     while not guessed:
         guess = input("Indovina la canzone:")
-        
-        
         guess = format_title(guess)
-        
         for i in track[0]:
             correct = format_title(i)
-            check = similar(correct.lower(), guess.lower())
-            if check > 0.8:
+            if similar(correct.lower(), guess.lower()) > 0.8:
                 guessed = True
                 break
-                
-        if guessed:
-            print("Bravo!")
-        else:
-            print("No!")
+        print("Bravo!" if guessed else "No!")

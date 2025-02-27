@@ -56,7 +56,7 @@ async def stopGuess_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_db: Chat = Chat.get_by_id(update.effective_chat.id)
     
     if not chat_db.guessing:
-        await rispondi(update.effective_message, "Non c'è bisogno di stoppare il guess, non è in corso nulla")
+        await rispondi(update.effective_message, "Non c'è bisogno di stoppare, non è in corso nulla")
         return
     
     try:
