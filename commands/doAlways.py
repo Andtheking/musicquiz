@@ -3,7 +3,7 @@ from requirements import *
 from music import similar, format_title
 from fuzzywuzzy import fuzz
 
-
+from datetime import datetime, timedelta
 
 # Questa funzione sarà eseguita prima di tutte le altre e per ogni messaggio che non è un comando
 # TODO Spezzettae in diverse funzioni, è troppo lunga
@@ -60,18 +60,42 @@ def middleware(next = None):
             for i,j in zip(db_chat.solution_title.split("\n"),db_chat.solution_artist.split("\n")):
                 correct_title, correct_artist = format_title(i, j)
                 if correct_title and correct_artist and guess and (fuzz.ratio(correct_title.lower(), guess.lower()) >= 80):
-                    if cup and db_chat.points:
-                        other = db_user.lastfm != db_chat.guessing_from_who
-                        punti_guadagnati = (2 if other else 1)
-                        cup.points += punti_guadagnati
-                        points_string = f"Hai ottenuto {punti_guadagnati} punt" + ("i perché il profilo non era tuo" if other else "o perché il profilo era tuo") + "."
-                        cup.save()
+                    points_string = ""
+                    if db_chat.points:
+                        if db_chat.automatic_quiz: # Se è un quiz di quelli automatici dai 2 se è altrui o 1 se è propria
+                            other = db_user.lastfm != db_chat.guessing_from_who
+                            punti_guadagnati = (2 if other else 1)
+                            cup.points += punti_guadagnati
+                            points_string = f"Hai ottenuto {punti_guadagnati} punt" + ("i perché il profilo non era tuo" if other else "o perché il profilo era tuo") + "."
+                            cup.save()
+                        else: # Se è un quiz richiesto dai 1 punto ogni 2 ore per ogni profilo lastfm diverso
+                            ufg: UtenteFmGuess = (
+                                UtenteFmGuess
+                                .select()
+                                .where(((UtenteFmGuess.utente == user.id) & (UtenteFmGuess.lastfm == str(db_chat.guessing_from_who).lower())))
+                                .first()
+                            )
+                            
+                            if ((not ufg) or datetime.now() > (ufg.when + timedelta(hours=2))): # Se sono passate 2 ore puoi assegnare i punti
+                                punti_guadagnati = 1
+                                
+                                if (not ufg):
+                                    ufg = UtenteFmGuess()
+                                    ufg.utente = cup.user
+                                    ufg.lastfm = str(db_chat.guessing_from_who).lower()
+                                ufg.when = datetime.now()
+                                
+                                cup.points += punti_guadagnati
+                                points_string = f"Hai ottenuto 1 punto perché sono passate 2 ore dall'ultima volta che hai indovinato una canzone da questo profilo"
+                                
+                                ufg.save()
+                                cup.save()
                     else:
                         points_string = ""
                         
                     await rispondi(
                         update.effective_message, 
-                        f"{user.name} hai indovinato il titolo della canzone! È \"{correct_title}\" di \"{correct_artist}\" presa dal profilo di \"{db_chat.guessing_from_who}\"." + points_string
+                        f"{user.name} hai indovinato il titolo della canzone! È \"{correct_title}\" di \"{correct_artist}\" presa dal profilo di \"{db_chat.guessing_from_who}\". " + points_string
                     )
                         
                     

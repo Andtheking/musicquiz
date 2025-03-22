@@ -1,7 +1,7 @@
 from requirements import *
 import asyncio
 from music import Main
-
+from jobs.sendQuiz import time_limit
 async def startGuess_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     groups = context.match.groupdict()
     if not groups['username']:
@@ -14,7 +14,11 @@ async def startGuess_command(update: Update, context: ContextTypes.DEFAULT_TYPE)
         return
     
     chat_db.guessing = True
+    chat_db.points = True
+
+    chat_db.job_id = context.job_queue.run_once(callback=time_limit, when=10*60, chat_id=chat_db.id, data=chat_db.id).job.id
     chat_db.save()
+    
     
     # Crea un task per eseguire la logica in modo asincrono e parallelo
     asyncio.create_task(startGuess_task(update, context))

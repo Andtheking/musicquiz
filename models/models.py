@@ -14,6 +14,12 @@ class Utente(BaseModel):
     admin = BooleanField(default=False)
     lastfm = TextField(null=True)
     
+class UtenteFmGuess(BaseModel):
+    utente = ForeignKeyField(Utente)
+    lastfm = TextField()
+    when = DateTimeField()
+    
+    
 class Chat(BaseModel):
     id = IntegerField(primary_key=True)
     title = TextField(null=True)
@@ -21,7 +27,11 @@ class Chat(BaseModel):
     
     job_id = IntegerField(null=True)
     guessing = BooleanField(null=False, default=True)
-    points = BooleanField(default=False)
+    
+    # Assegnazione di punti
+    points = BooleanField(default=False) 
+    
+    automatic_quiz = BooleanField(null=False, default=False)
     guessing_from_who = TextField(null=True)
     solution_title = TextField(null=True)
     solution_artist = TextField(null=True)
@@ -58,4 +68,6 @@ def alter_column(tabella: str, colonna: str, tipo: Field):
 # 3. Rimuovere la vecchia tabella.
         
 if __name__ == '__main__':
-    alter_column('chat', 'automatic_quizzes',BooleanField(null=False, default=False))
+    # alter_column('chat', 'automatic_quizzes',BooleanField(null=False, default=False))
+    # db.create_tables([UtenteFmGuess])
+    add_column('chat', 'automatic_quiz', BooleanField(null=False, default=False))
