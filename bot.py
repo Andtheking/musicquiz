@@ -1,3 +1,5 @@
+import asyncio
+
 from requirements import *
 
 TOKEN = load_configs()['token']  # TOKEN DEL BOT
@@ -80,9 +82,7 @@ def main():
 
     print(f"Primo quiz: {first_quiz}")
     
-    application.run_polling() # Avvia il polling: https://blog.neurotech.africa/content/images/2023/06/telegram-polling-vs-webhook-5-.png 
+    application.run_polling()
     
-# Stabilisce che il codice sarà avviato solo quando il file è aperto direttamente, e non da un altro programma
-# (Devi avviare il .py direttamente, rendendolo così il __main__)
 if __name__ == '__main__':
     main()
