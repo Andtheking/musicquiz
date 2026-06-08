@@ -1,4 +1,9 @@
-from requirements import *
+from telegram import Update
+from telegram.ext import ContextTypes
+
+from models.models import Utente
+from utils.answerMessage import rispondi
+from utils.log import log
 
 async def common(message, candidate):
     if candidate is None and message.reply_to_message is None:

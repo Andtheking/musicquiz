@@ -1,7 +1,12 @@
-from requirements import *
 import asyncio
+
+from telegram import Chat, Message, Update
+from telegram.constants import ParseMode
+from telegram.ext import ContextTypes
 from music import Main
 from jobs.sendQuiz import time_limit
+from utils.answerMessage import rispondi
+
 async def startGuess_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     groups = context.match.groupdict()
     if not groups['username']:

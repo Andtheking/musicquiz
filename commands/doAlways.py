@@ -1,9 +1,16 @@
-from requirements import *
+from telegram import Update
+from telegram.constants import ChatType
+from telegram.ext import ContextTypes
 
-from music import similar, format_title
+from models.models import Chat, ChatUserPoints, Utente, UtenteFmGuess
+from music import format_title
 from fuzzywuzzy import fuzz
 
 from datetime import datetime, timedelta
+
+from utils.answerMessage import rispondi
+from utils.jsonUtils import load_configs
+from utils.log import log
 
 # Questa funzione sarà eseguita prima di tutte le altre e per ogni messaggio che non è un comando
 # TODO Spezzettae in diverse funzioni, è troppo lunga
@@ -113,9 +120,6 @@ def middleware(next = None):
                     db_chat.job_id = None
                     
                     db_chat.save()
-                    
-                        
-
                     break
         
         if next != None:

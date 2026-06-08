@@ -19,7 +19,6 @@ class UtenteFmGuess(BaseModel):
     lastfm = TextField()
     when = DateTimeField()
     
-    
 class Chat(BaseModel):
     id = IntegerField(primary_key=True)
     title = TextField(null=True)

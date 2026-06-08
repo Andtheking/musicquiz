@@ -1,8 +1,6 @@
 from ytmusicapi import YTMusic
 import yt_dlp
-# from playsound import playsound as play
 import os
-import jsonpickle
 import pylast
 import random 
 import re
@@ -19,8 +17,8 @@ import pykakasi
 import concurrent.futures
 
 sp = spotipy.Spotify(auth_manager=spotipy.SpotifyOAuth(
-    client_id=load_configs()['SPOTIFY']['CLIENT_ID'],
-    client_secret=load_configs()['SPOTIFY']['CLIENT_SECRET'],
+    client_id=os.getenv("SPOTIFY_CLIENT_ID"),
+    client_secret=os.getenv("SPOTIFY_CLIENT_SECRET"),
     redirect_uri="http://localhost:5500/callback",
     scope=None
 ))
@@ -126,9 +124,8 @@ def cut_random_15s(file_path: str, output_path: str):
     
 async def Main(username):
     yt = YTMusic()
-    keys = load_configs()['LAST_FM']
-    api_key = keys['API_KEY']
-    api_secret = keys['API_SECRET']
+    api_key = os.getenv("LASTFM_API_KEY")
+    api_secret = os.getenv("LASTFM_API_SECRET")
     ydl_opts = {
         'outtmpl': 'music/%(title)s.%(ext)s',
         'format': 'bestaudio[abr<=128]/best',

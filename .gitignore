@@ -7,3 +7,4 @@ music/*
 bot.pkl
 .cache
 .vscode
+.env

@@ -1,4 +1,10 @@
-from requirements import *
+
+from telegram import Chat, Update
+from telegram.ext import ContextTypes
+
+from models.models import ChatUserPoints, Utente
+from utils.answerMessage import rispondi
+
 
 async def getPoints(update: Update, context: ContextTypes.DEFAULT_TYPE):
     

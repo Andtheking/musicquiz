@@ -4,11 +4,12 @@ import inspect
 
 from datetime import datetime
 
-from utils.jsonUtils import fromJSONFile, toJSONFile, load_configs
+from utils.jsonUtils import fromJSONFile, toJSONFile
+
+from config import config
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
-
 
 logging.getLogger().setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
@@ -22,7 +23,7 @@ def log(message: str, send_with_bot:bool = False, tipo: str = "info", only_file=
             logger.error(message)
         elif tipo == "warning":
             logger.warning(message)
-        else: #if tipo == "info":
+        else:
             logger.info(message)
             
         
@@ -30,7 +31,7 @@ def log(message: str, send_with_bot:bool = False, tipo: str = "info", only_file=
     messageForBot = message
     
     logQueue = fromJSONFile('logQueue.json')
-    if send_with_bot and load_configs()["canale_log"] is not None:
+    if send_with_bot and config.CANALE_LOG is not None:
         logQueue.append(f"#{tipo.upper()}\n" + messageForBot)
         toJSONFile('logQueue.json',logQueue)
         

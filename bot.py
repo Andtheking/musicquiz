@@ -1,9 +1,25 @@
-import asyncio
+from telegram import Update
+from telegram.ext import Application, ContextTypes, ConversationHandler, MessageHandler, PicklePersistence
+from telegram.ext import filters
 
-from requirements import *
+import re
 
-TOKEN = load_configs()['token']  # TOKEN DEL BOT
-CANALE_LOG = load_configs()['canale_log'] # Se vuoi mandare i log del bot in un canale telegram, comodo a parere mio.
+from commands.admin import addAdmin, removeAdmin
+from commands.autoQuiz import switchQuizMode
+from commands.doAlways import middleware
+from commands.fmuser import setLastFmUser
+from commands.guess import startGuess_command, stopGuess_command
+from commands.points import getClassifica, getOtherPoints, getPoints
+from config import config
+
+from jobs.initialize import initialize
+from jobs.sendQuiz import sendQuizJob
+from jobs.send_logs import send_logs_channel
+from utils.jsonUtils import load_configs
+from utils.log import log
+
+TOKEN = config.TOKEN
+CANALE_LOG = config.CANALE_LOG
 persistence = PicklePersistence('bot.pkl')
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE): # /start
@@ -33,7 +49,7 @@ from datetime import datetime, timedelta
 
 def main():
     # Avvia il bot
-    application = Application.builder().token(TOKEN).persistence(persistence).build() # Se si vuole usare la PicklePersistance bisogna aggiungere dopo .token(TOKEN) anche .persistance(OGGETTO_PP)
+    application = Application.builder().token(TOKEN).persistence(persistence).build() 
 
     handlers = {
         "start": MessageHandler(message_handler_as_command('start'),middleware(start)),
@@ -52,12 +68,11 @@ def main():
     for v in handlers.values():
         application.add_handler(v,0)
     
-    # Se non cadi in nessun handler, vieni qui
     application.add_handler(MessageHandler(filters=filters.ALL, callback=middleware()),1)
      
-    application.add_error_handler(error) # Definisce la funzione che gestisce gli errori
+    application.add_error_handler(error)
     
-    jq = application.job_queue # Per eseguire funzioni asincrone con frequenza, ritardi o a pianificazione.
+    jq = application.job_queue
     
 
     if not load_configs()['test']:
@@ -71,7 +86,6 @@ def main():
         when = 1
     )
 
-    
     first_quiz = next((datetime.now().replace(hour=h, minute=0, second=0, microsecond=0) for h in [7, 9, 11, 13, 15, 17, 19, 21, 23] if datetime.now() <= datetime.now().replace(hour=h, minute=0, second=0, microsecond=0)), datetime.now().replace(hour=7, minute=0, second=0, microsecond=0) + timedelta(days=1))
 
     jq.run_repeating(

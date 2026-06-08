@@ -1,4 +1,8 @@
-from requirements import *
+from telegram import Chat, Message
+from telegram.ext import ContextTypes
+
+from config import *
+from models.models import ChatUserPoints, Utente
 from utils.log import log
 
 import asyncio
@@ -50,7 +54,7 @@ async def sendQuiz(context: ContextTypes.DEFAULT_TYPE, chat: Chat, sem: asyncio.
         
         async with sem:        
             mex: Message = await context.bot.send_message(chat_id=chat.id, text="⏳")
-            r = await Main(chat_user.lastfm)  # "Main" deve essere asincrona per questa chiamata
+            r = await Main(chat_user.lastfm)  
             
             if r is None:
                 wrong.append(chat_user.id)

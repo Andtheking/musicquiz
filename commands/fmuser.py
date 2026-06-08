@@ -1,4 +1,10 @@
-from requirements import *
+from telegram import Update
+from telegram.constants import ParseMode
+from telegram.ext import ContextTypes
+
+from config import *
+from models.models import Utente
+from utils.answerMessage import rispondi
 
 async def setLastFmUser(update: Update, context: ContextTypes.DEFAULT_TYPE):
     groups = context.match.groupdict()
