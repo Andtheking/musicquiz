@@ -1,8 +1,9 @@
 import asyncio
 
-from telegram import Chat, Message, Update
+from telegram import Message, Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
+from models.models import Chat
 from music import Main
 from jobs.sendQuiz import time_limit
 from utils.answerMessage import rispondi

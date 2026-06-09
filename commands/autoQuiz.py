@@ -1,6 +1,7 @@
-from telegram import Chat, Update
+from telegram import Update
 from telegram.ext import ContextTypes
 
+from models.models import Chat
 from utils.answerMessage import rispondi
 
 async def switchQuizMode (update: Update, context: ContextTypes.DEFAULT_TYPE):

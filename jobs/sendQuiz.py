@@ -1,8 +1,8 @@
-from telegram import Chat, Message
+from telegram import Message
 from telegram.ext import ContextTypes
 
 from config import *
-from models.models import ChatUserPoints, Utente
+from models.models import Chat, ChatUserPoints, Utente
 from utils.log import log
 
 import asyncio
