@@ -1,0 +1,8 @@
+services:
+  telegram-musicquiz:
+    build: .
+    container_name: telegram-musicquiz-bot
+    restart: always
+    volumes:
+      - ~/bot_data/${COMPOSE_PROJECT_NAME}:/app/secret
+    env_file: ".env"
