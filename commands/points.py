@@ -1,8 +1,8 @@
 
-from telegram import Chat, Update
+from telegram import Update
 from telegram.ext import ContextTypes
 
-from models.models import ChatUserPoints, Utente
+from models.models import Chat, ChatUserPoints, Utente
 from utils.answerMessage import rispondi
 
 
