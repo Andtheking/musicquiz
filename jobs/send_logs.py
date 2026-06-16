@@ -6,12 +6,12 @@ else:
 
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
-from config import config
+from config import config, LOGQUEUE_PATH
 
 from asyncio import sleep
 
 async def send_logs_channel(context: ContextTypes.DEFAULT_TYPE):
-    logQueue = fromJSONFile('logQueue.json')
+    logQueue = fromJSONFile(LOGQUEUE_PATH)
     
     if len(logQueue) == 0:
         return
@@ -41,5 +41,5 @@ async def send_logs_channel(context: ContextTypes.DEFAULT_TYPE):
         await sleep(5)
     
     # Svuota la coda e salva su file
-    toJSONFile('logQueue.json', [])
+    toJSONFile(LOGQUEUE_PATH, [])
 
